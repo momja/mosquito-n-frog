@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import image_helper
+import logger
 import parser_utils
 from image_builder import ImageBuilder
 from sprite_utils.sprite_collection.default_sprite_collection_builder import DefaultSpriteCollectionBuilder
@@ -40,20 +41,20 @@ if __name__ == '__main__':
     sprite_collection = sprite_collection_builder.build()
     sprite_selector = SpriteSelector(sprite_collection)
 
-    img = image_helper.resize_image_for_sprites(img, args.x_count, args.y_count, sprite_collection)
+    aspect_ratio = image_helper.aspect_ratio(img)
+    y_count = args.y_count or int(args.x_count/aspect_ratio)
+
+    img = image_helper.resize_image_for_sprites(img, args.x_count, y_count, sprite_collection)
 
     height, width, channels = img.shape
-    print(img.shape)
 
     indices, h, w = sprite_selector.classify(img, 1)
 
     binned_img = np.zeros((height, width, 3))
 
-    # print(binned_img.shape)
-    # dx, dy = sprite_selector._build_normal_gradient(img, (img.shape[1], img.shape[0]))
-    #imageBuilder.build()
+    logger.log_message("Teste")
 
-    if (args.is_export):
+    if args.is_export:
         mosaic_exporter.export_csv(indices, sprite_collection, h, w)
     else:
         imageBuilder = ImageBuilder()
@@ -62,12 +63,5 @@ if __name__ == '__main__':
             for x, index in enumerate(row2):
                 imageBuilder.insert_subimage(x, y, sprite_collection.get_image(index), binned_img, args.height)
 
-        fig, axis = plt.subplots(2,2)
-        axis[0,0].set_title("with gradient")
-        axis[0,1].set_title("no gradient")
-        axis[0,1].imshow(binned_img)
-        # axis[1,0].set_title("x gradient")
-        # axis[1,0].imshow(dx)
-        # axis[1,1].set_title("y gradient")
-        # axis[1,1].imshow(dy)
+        plt.imshow(binned_img)
         plt.show()
